@@ -9,7 +9,7 @@ import UIKit
 
 class HomeViewController: UIViewController {
 
-    lazy var collectionView: UICollectionView = {
+    private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.minimumLineSpacing = 0
@@ -20,19 +20,24 @@ class HomeViewController: UIViewController {
         return cv
     }()
     
-    let headers: [String] = ["Home", "Entertainment Writers", "News", "Progress"]
+    private let headers: [String] = ["Home", " Entertainment Writers", "US Celebrities", "Progress"]
     
-    var homeHeaderBarNavigator: HomeHeaderBarNavigator!
-        
-    let cellID = "feedViewCell"
+    private var homeHeaderBarNavigator: HomeHeaderBarNavigator!
+    private var headarBarYConstraint: NSLayoutConstraint!
+    
+    private let cellID = "feedViewCell"
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
-         homeHeaderBarNavigator = HomeHeaderBarNavigator(headers: headers)
+        homeHeaderBarNavigator = HomeHeaderBarNavigator(headers: headers)
 
         setUpViews()
 
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        homeHeaderBarNavigator.setUpViewBounds()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -40,36 +45,35 @@ class HomeViewController: UIViewController {
         navigationController?.setNavigationBarHidden(true, animated: animated)
     }
 
-    func setUpViews(){
-   
-        collectionView.backgroundColor = .black
-        view.addSubview(collectionView)
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-        collectionView.register(FeedViewCVCell.self, forCellWithReuseIdentifier: cellID)
-
-  
-        let headerBarHeight = 85.0
-        homeHeaderBarNavigator.clipsToBounds = true
-        homeHeaderBarNavigator.selectionDelegate = self
-        view.addSubview(homeHeaderBarNavigator)
-        homeHeaderBarNavigator.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            homeHeaderBarNavigator.topAnchor.constraint(equalTo: view.topAnchor),
-            homeHeaderBarNavigator.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            homeHeaderBarNavigator.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            homeHeaderBarNavigator.heightAnchor.constraint(equalToConstant: headerBarHeight)
-        ])
-    }
+    // MARK: Methods:
+    
+            
+    
 
 }
 
-extension HomeViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, HomeHeaderBarNavigationDelegate{
+
+
+
+extension HomeViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, HomeHeaderBarNavigationDelegate, NavBarScrollDelegate{
+    
+    func scrollShouldHideNavBar() {
+        headarBarYConstraint.constant = 0
+        self.homeHeaderBarNavigator.topViewsAreVisible(isVisible: false)
+        UIView.animate(withDuration: 0.2){
+            
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    func scrollShouldShowNavBar() {
+        headarBarYConstraint.constant = 45
+        self.homeHeaderBarNavigator.topViewsAreVisible(isVisible: true)
+        UIView.animate(withDuration: 0.2){
+            self.view.layoutIfNeeded()
+        }
+    }
+    
     
     func didTapHeaderAt(didSelectHeaderAtIndex indexPathInt: Int) {
         let contentOffsetX = view.bounds.width * CGFloat(indexPathInt)
@@ -88,6 +92,8 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDelegate
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
      
         homeHeaderBarNavigator.adjustSlider(translation: scrollView.contentOffset.x)
+        
+        
     }
     
     
@@ -103,9 +109,46 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDelegate
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellID, for: indexPath) as! FeedViewCVCell
+        cell.customNavBarScrollDelegate = self
         return cell
        
         }
+    
+    
+}
+
+
+extension HomeViewController{
+    
+    func setUpViews(){
+   
+        collectionView.backgroundColor = .black
+        view.addSubview(collectionView)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        collectionView.register(FeedViewCVCell.self, forCellWithReuseIdentifier: cellID)
+
+  
+        let headerBarHeight: CGFloat = 145
+        homeHeaderBarNavigator.clipsToBounds = false
+        homeHeaderBarNavigator.selectionDelegate = self
+        view.addSubview(homeHeaderBarNavigator)
+        homeHeaderBarNavigator.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            homeHeaderBarNavigator.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            homeHeaderBarNavigator.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            homeHeaderBarNavigator.heightAnchor.constraint(equalToConstant: headerBarHeight)
+        ])
+        headarBarYConstraint = homeHeaderBarNavigator.centerYAnchor.constraint(equalTo: view.topAnchor, constant: 45 )
+        headarBarYConstraint.isActive = true
+
+        
+    }
     
     
 }

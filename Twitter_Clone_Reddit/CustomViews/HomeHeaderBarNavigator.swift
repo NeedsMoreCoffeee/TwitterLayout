@@ -26,6 +26,11 @@ class HomeHeaderBarNavigator: UIView {
     
     // MARK: private variables
     
+    
+    private var profileImageView: UIImageView!
+    
+    private var centerImageView: UIImageView!
+    
     // used to add space between  headers
     private var sectionSpacing: CGFloat = 25
     
@@ -42,13 +47,15 @@ class HomeHeaderBarNavigator: UIView {
     // used to make sure our slider animations dont over lap
     private var animatingPress: Bool = false
     
+    // the view within our scroll view
+    private var contextView = UIView()
 
-    
-    // TESTING: scroll view
-    private var scrollView:UIScrollView!
+
+    // the scroll view that contains our context view that holds our headerLabels
+    private var scrollView: UIScrollView!
     
     // initialzed with a string of what our header title will be.
-     init(headers: [String]){
+     init(headers: [String]?){
         super.init(frame: .zero)
         setUpView(headers: headers)
     }
@@ -126,7 +133,19 @@ class HomeHeaderBarNavigator: UIView {
          }
         
      }
+    
+    /// call this after superview did appear, sets the views bounds
+    public func setUpViewBounds(){
+        let distance = headerButtons[headerButtons.count - 1].frame.maxX
+        scrollView.contentSize = CGSize(width: distance + 10, height: frame.height)
+
+    }
   
+    public func topViewsAreVisible(isVisible: Bool){
+        UIView.animate(withDuration: 0.2){
+            self.profileImageView.alpha = isVisible ? 1 : 0
+        }
+    }
     // MARK: Private Methods
     
     // determines if our header has been pressed, changes view accordingly
@@ -145,7 +164,8 @@ class HomeHeaderBarNavigator: UIView {
         // change the color of our other headers
         updateHighlightedLabels()
         
-      
+        // used to center our selection
+        adjustScrollView()
         
         // moves the slider to our selection
         moveSliderToSelected(indexPath: selection)
@@ -155,7 +175,23 @@ class HomeHeaderBarNavigator: UIView {
         
     }
     
-  
+    // adjusts the scroll view so that the selected view is always in center
+    private func adjustScrollView(){
+        let selectedMinX = headerButtons[headerIndexPath].frame.minX
+        let scrollViewWidth = scrollView.contentSize.width
+        let maxOffset = scrollViewWidth - bounds.width + 20
+        
+        // if the headers are smaller than the view, do not animate
+        if maxOffset < 0 { return }
+        
+        let percentageOfTranslation =  selectedMinX / scrollViewWidth
+        let offset = maxOffset * percentageOfTranslation
+        
+        scrollView.setContentOffset(CGPoint(x: offset, y: 0), animated: true)
+
+    }
+    
+ 
     // function that grays all headers, then highlights selected header
     private func updateHighlightedLabels(){
         // iterate over headers, then set highlight based on currentSelectedHeader
@@ -176,20 +212,58 @@ class HomeHeaderBarNavigator: UIView {
 
 
 
-extension HomeHeaderBarNavigator{
+extension HomeHeaderBarNavigator: UIScrollViewDelegate{
     
     // MARK: Methods Used Setting Up Our View
     
     // initiates all of our view set up methods
-    func setUpView(headers: [String]){
+    func setUpView(headers: [String]?){
+
+        guard let headers = headers else {
+            return
+        }
 
         addBlur()
+        addScrollView()
+        addTopImages()
         addTitles(headers: headers)
         addSliderBar()
         drawBottomLine()
     }
     
-  
+    // scrollView used to show all headers
+    func addScrollView(){
+        scrollView = UIScrollView()
+        scrollView.backgroundColor = .clear
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.delegate = self
+        addSubview(scrollView)
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            scrollView.heightAnchor.constraint(equalToConstant: 45)
+        ])
+        
+        
+        contextView.backgroundColor = .clear
+        scrollView.addSubview(contextView)
+        contextView.translatesAutoresizingMaskIntoConstraints = false
+        
+        
+        NSLayoutConstraint.activate([
+            contextView.centerYAnchor.constraint(equalTo: scrollView.centerYAnchor),
+            contextView.widthAnchor.constraint(equalTo: scrollView.widthAnchor, multiplier: 2),
+            contextView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contextView.heightAnchor.constraint(equalTo: scrollView.heightAnchor)
+
+        ])
+        
+    }
+    
+
+   
     // adds all of our titles used for navigating and creates buttons
     func addTitles(headers: [String]){
         var trailingXInsert: NSLayoutXAxisAnchor?
@@ -203,8 +277,10 @@ extension HomeHeaderBarNavigator{
 
 
         if trailingXInsert == nil{
-            trailingXInsert = leadingAnchor
+            trailingXInsert = contextView.leadingAnchor
         }
+        
+        var twoHeadersInitialSpacing = 0.0
         
         var index = 0
         for title in headers{
@@ -214,20 +290,34 @@ extension HomeHeaderBarNavigator{
             button.sizeToFit()
             button.titleLabel!.font = headerFont
             button.setTitleColor(color, for: .normal)
-            addSubview(button)
+            contextView.addSubview(button)
             button.translatesAutoresizingMaskIntoConstraints = false
+            
+            
+            
+            if headers.count == 2 {
+                sectionSpacing = (UIScreen.main.bounds.width / 5) * CGFloat(index * 2 + 1)
+                print(sectionSpacing)
+                if index == 0 { twoHeadersInitialSpacing = sectionSpacing}
+                
+            }
+                
             NSLayoutConstraint.activate([
-                button.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -distanceFromBottom),
+                button.bottomAnchor.constraint(equalTo: contextView.bottomAnchor, constant: -distanceFromBottom),
                 button.leadingAnchor.constraint(equalTo: trailingXInsert!, constant: sectionSpacing)
             ])
+            
+            if headers.count != 2{
             trailingXInsert = button.trailingAnchor
+            }
             button.tag = index
             index += 1
-            button.addTarget(self, action: #selector(headerSelected(sender:)), for: .touchDown)
+            button.addTarget(self, action: #selector(headerSelected(sender:)), for: .touchUpInside)
             headerButtons.append(button)
             
         }
         
+        if headers.count == 2 {sectionSpacing = twoHeadersInitialSpacing}
     }
     
     // used to create a seperator at the bottom of our view
@@ -262,20 +352,49 @@ extension HomeHeaderBarNavigator{
         sliderView = UIView()
         sliderView.layer.cornerRadius = sliderHeight / 2
         sliderView.backgroundColor = ProjectThemes.lightBlueColorPT
-        addSubview(sliderView)
+        contextView.addSubview(sliderView)
         sliderView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            sliderView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            sliderView.bottomAnchor.constraint(equalTo: contextView.bottomAnchor),
             sliderView.heightAnchor.constraint(equalToConstant: sliderHeight),
          
         ])
         
-        sliderViewLeadingConstraint = sliderView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: sectionSpacing)
+        sliderViewLeadingConstraint = sliderView.leadingAnchor.constraint(equalTo: contextView.leadingAnchor, constant: sectionSpacing)
         sliderViewLeadingConstraint.isActive = true
         
         sliderViewWidthConstraint =  sliderView.widthAnchor.constraint(equalToConstant: firstButton.frame.width)
         sliderViewWidthConstraint.isActive = true
 
+    }
+    
+    
+    func addTopImages(){
+        centerImageView = UIImageView(image: UIImage(named: "twitter_logo"))
+        centerImageView.contentMode = .scaleAspectFit
+        addSubview(centerImageView!)
+        centerImageView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            centerImageView.centerXAnchor.constraint(equalTo: centerXAnchor),
+            centerImageView.bottomAnchor.constraint(equalTo: scrollView.topAnchor, constant: 0),
+            centerImageView.widthAnchor.constraint(equalToConstant: 30),
+            centerImageView.heightAnchor.constraint(equalToConstant: 30)
+        ])
+        
+        
+        let profileImageSize: CGFloat = 40
+        profileImageView = UIImageView(image: UIImage(named: "profile_img"))
+        profileImageView.layer.cornerRadius = profileImageSize / 2
+        profileImageView.clipsToBounds = true
+        profileImageView.contentMode = .scaleToFill
+        addSubview(profileImageView)
+        profileImageView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            profileImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            profileImageView.centerYAnchor.constraint(equalTo: centerImageView.centerYAnchor, constant: -3),
+            profileImageView.widthAnchor.constraint(equalToConstant: profileImageSize),
+            profileImageView.heightAnchor.constraint(equalToConstant: profileImageSize)
+        ])
     }
     
     

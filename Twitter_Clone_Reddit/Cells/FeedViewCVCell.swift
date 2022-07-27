@@ -7,6 +7,13 @@
 
 import UIKit
 
+protocol NavBarScrollDelegate{
+ 
+    func scrollShouldHideNavBar()
+    func scrollShouldShowNavBar()
+
+    
+}
 
 // this class is our view that will hold our feeds.
 class FeedViewCVCell: UICollectionViewCell {
@@ -25,14 +32,45 @@ class FeedViewCVCell: UICollectionViewCell {
         
     let cellID = "feedViewCell"
     
+    private var startOffSet:CGFloat = 0
+    private var scrollTranslation: CGFloat = 0
+    
+    public var customNavBarScrollDelegate: NavBarScrollDelegate!
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         
         setUpViews()
     }
     
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let scrollingDown = startOffSet < scrollView.contentOffset.y
+
+        if scrollingDown{ scrollTranslation -= 1} else { scrollTranslation += 1}
+        
+        if scrollView.contentOffset.y < 200{
+            customNavBarScrollDelegate.scrollShouldShowNavBar()
+            return
+        }
+        
+        if(scrollTranslation > 10 ){
+            customNavBarScrollDelegate.scrollShouldShowNavBar()
+        }
+        
+        if(scrollTranslation < -10 && scrollView.contentOffset.y > 200){
+            customNavBarScrollDelegate.scrollShouldHideNavBar()
+        }
+        
+    }
     
     
+    
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        scrollTranslation = 0
+        startOffSet = scrollView.contentOffset.y
+    }
+    
+  
     
     func setUpViews(){
         let textDarkColor = UIColor(hue: 0.6028, saturation: 0.06, brightness: 0.47, alpha: 1.0) /* #72757a */
