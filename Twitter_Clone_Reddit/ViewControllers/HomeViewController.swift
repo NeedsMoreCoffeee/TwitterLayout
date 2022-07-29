@@ -7,9 +7,12 @@
 
 import UIKit
 
-class HomeViewController: UIViewController {
 
-    private lazy var collectionView: UICollectionView = {
+class HomeViewController: UIViewController {
+        
+    
+
+    private lazy var feedCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         layout.minimumLineSpacing = 0
@@ -30,8 +33,10 @@ class HomeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        // creates our header bar
         homeHeaderBarNavigator = HomeHeaderBarNavigator(headers: headers)
-
+        
+        // sets up our layout
         setUpViews()
 
     }
@@ -54,8 +59,11 @@ class HomeViewController: UIViewController {
 
 
 
-
+ // MARK: Collection View and Delegates
 extension HomeViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource, HomeHeaderBarNavigationDelegate, NavBarScrollDelegate{
+   
+    
+    
     
     func scrollShouldHideNavBar() {
         headarBarYConstraint.constant = 0
@@ -77,8 +85,9 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDelegate
     
     func didTapHeaderAt(didSelectHeaderAtIndex indexPathInt: Int) {
         let contentOffsetX = view.bounds.width * CGFloat(indexPathInt)
-        let contentOffset = self.collectionView.contentOffset
-        self.collectionView.scrollRectToVisible(CGRect(x: contentOffsetX, y: -contentOffset.y, width: view.bounds.width, height: -contentOffset.y), animated: true)
+        let contentOffset = self.feedCollectionView.contentOffset
+        self.feedCollectionView.scrollRectToVisible(CGRect(x: contentOffsetX, y: -contentOffset.y, width: view.bounds.width, height: -contentOffset.y), animated: true)
+
     }
     
     
@@ -92,14 +101,12 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDelegate
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
      
         homeHeaderBarNavigator.adjustSlider(translation: scrollView.contentOffset.x)
-        
-        
     }
     
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
 
-      homeHeaderBarNavigator.moveSliderToSelected(indexPath: Int(scrollView.contentOffset.x / self.collectionView.bounds.width))
+      homeHeaderBarNavigator.moveSliderToSelected(indexPath: Int(scrollView.contentOffset.x / self.feedCollectionView.bounds.width))
 
     }
     
@@ -118,20 +125,20 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDelegate
 }
 
 
+    // MARK: View Layout
 extension HomeViewController{
     
     func setUpViews(){
-   
-        collectionView.backgroundColor = .black
-        view.addSubview(collectionView)
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        feedCollectionView.backgroundColor = .black
+        view.addSubview(feedCollectionView)
+        feedCollectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            feedCollectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            feedCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            feedCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            feedCollectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-        collectionView.register(FeedViewCVCell.self, forCellWithReuseIdentifier: cellID)
+        feedCollectionView.register(FeedViewCVCell.self, forCellWithReuseIdentifier: cellID)
 
   
         let headerBarHeight: CGFloat = 145

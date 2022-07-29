@@ -23,11 +23,12 @@ class HomeHeaderBarNavigator: UIView {
     /// Delegate for home header bar navigator. Contains method for when header is tapped
     public var selectionDelegate: HomeHeaderBarNavigationDelegate!
     
+
     
     // MARK: private variables
     
     
-    private var profileImageView: UIImageView!
+    private var profileButton: UIButton!
     
     private var centerImageView: UIImageView!
     
@@ -81,7 +82,7 @@ class HomeHeaderBarNavigator: UIView {
         updateHighlightedLabels()
         
         // animate the transition
-        // MARK: for improvement, create custom scroll view animation, if duration is too slow, you get jittering.
+        // MARK: for improvement, create custom scroll view animation, if duration is too slow, you get jittering. Switch scrollView to collectionView
         UIView.animate(withDuration: 0.45, delay: 0, options: .curveEaseIn, animations: { () -> Void in
             self.layoutIfNeeded()
 
@@ -137,15 +138,17 @@ class HomeHeaderBarNavigator: UIView {
     /// call this after superview did appear, sets the views bounds
     public func setUpViewBounds(){
         let distance = headerButtons[headerButtons.count - 1].frame.maxX
-        scrollView.contentSize = CGSize(width: distance + 10, height: frame.height)
+        scrollView.contentSize = CGSize(width: distance + 10, height: 35.0)
 
     }
   
     public func topViewsAreVisible(isVisible: Bool){
         UIView.animate(withDuration: 0.2){
-            self.profileImageView.alpha = isVisible ? 1 : 0
+            self.profileButton.alpha = isVisible ? 1 : 0
         }
     }
+    
+    
     // MARK: Private Methods
     
     // determines if our header has been pressed, changes view accordingly
@@ -173,6 +176,11 @@ class HomeHeaderBarNavigator: UIView {
         // refernce to our delegate
         selectionDelegate.didTapHeaderAt(didSelectHeaderAtIndex: selection)
         
+    }
+    
+    // called when our profile button is tapped
+    @objc private func profileButtonTapped(){
+        TabBarController.parentController?.showMenu()
     }
     
     // adjusts the scroll view so that the selected view is always in center
@@ -211,13 +219,14 @@ class HomeHeaderBarNavigator: UIView {
 
 
 
+// MARK: View Layout
 
 extension HomeHeaderBarNavigator: UIScrollViewDelegate{
     
-    // MARK: Methods Used Setting Up Our View
+
     
     // initiates all of our view set up methods
-    func setUpView(headers: [String]?){
+   private func setUpView(headers: [String]?){
 
         guard let headers = headers else {
             return
@@ -232,7 +241,7 @@ extension HomeHeaderBarNavigator: UIScrollViewDelegate{
     }
     
     // scrollView used to show all headers
-    func addScrollView(){
+   private func addScrollView(){
         scrollView = UIScrollView()
         scrollView.backgroundColor = .clear
         scrollView.showsHorizontalScrollIndicator = false
@@ -265,7 +274,7 @@ extension HomeHeaderBarNavigator: UIScrollViewDelegate{
 
    
     // adds all of our titles used for navigating and creates buttons
-    func addTitles(headers: [String]){
+    private func addTitles(headers: [String]){
         var trailingXInsert: NSLayoutXAxisAnchor?
         let distanceFromBottom = 7.0
 
@@ -294,7 +303,6 @@ extension HomeHeaderBarNavigator: UIScrollViewDelegate{
             button.translatesAutoresizingMaskIntoConstraints = false
             
             
-            
             if headers.count == 2 {
                 sectionSpacing = (UIScreen.main.bounds.width / 5) * CGFloat(index * 2 + 1)
                 print(sectionSpacing)
@@ -321,7 +329,7 @@ extension HomeHeaderBarNavigator: UIScrollViewDelegate{
     }
     
     // used to create a seperator at the bottom of our view
-    func drawBottomLine(){
+    private func drawBottomLine(){
         let seperator = UIView()
         seperator.backgroundColor = ProjectThemes.darkGrayColorPT
         addSubview(seperator)
@@ -335,7 +343,7 @@ extension HomeHeaderBarNavigator: UIScrollViewDelegate{
     }
     
     // creates our transparent background
-       func addBlur(){
+    private func addBlur(){
            let blurEffect = UIBlurEffect(style: UIBlurEffect.Style.dark)
            let blurEffectView = UIVisualEffectView(effect: blurEffect)
            blurEffectView.frame = bounds
@@ -345,7 +353,7 @@ extension HomeHeaderBarNavigator: UIScrollViewDelegate{
        }
     
     // adds our slider bar to the view
-    func addSliderBar(){
+    private func addSliderBar(){
         let firstButton = headerButtons[0]
         let sliderHeight = 5.0
         
@@ -369,7 +377,7 @@ extension HomeHeaderBarNavigator: UIScrollViewDelegate{
     }
     
     
-    func addTopImages(){
+    private func addTopImages(){
         centerImageView = UIImageView(image: UIImage(named: "twitter_logo"))
         centerImageView.contentMode = .scaleAspectFit
         addSubview(centerImageView!)
@@ -383,19 +391,23 @@ extension HomeHeaderBarNavigator: UIScrollViewDelegate{
         
         
         let profileImageSize: CGFloat = 40
-        profileImageView = UIImageView(image: UIImage(named: "profile_img"))
-        profileImageView.layer.cornerRadius = profileImageSize / 2
-        profileImageView.clipsToBounds = true
-        profileImageView.contentMode = .scaleToFill
-        addSubview(profileImageView)
-        profileImageView.translatesAutoresizingMaskIntoConstraints = false
+        let profileImage = UIImage(named: "profile_img")
+        profileButton = UIButton()
+        profileButton.setImage(profileImage, for: .normal)
+        profileButton.layer.cornerRadius = profileImageSize / 2
+        profileButton.clipsToBounds = true
+        profileButton.contentMode = .scaleToFill
+        addSubview(profileButton)
+        profileButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            profileImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            profileImageView.centerYAnchor.constraint(equalTo: centerImageView.centerYAnchor, constant: -3),
-            profileImageView.widthAnchor.constraint(equalToConstant: profileImageSize),
-            profileImageView.heightAnchor.constraint(equalToConstant: profileImageSize)
+            profileButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            profileButton.centerYAnchor.constraint(equalTo: centerImageView.centerYAnchor, constant: -3),
+            profileButton.widthAnchor.constraint(equalToConstant: profileImageSize),
+            profileButton.heightAnchor.constraint(equalToConstant: profileImageSize)
         ])
+        profileButton.addTarget(self, action: #selector(profileButtonTapped), for: .touchDown)
     }
+    
     
     
 }
