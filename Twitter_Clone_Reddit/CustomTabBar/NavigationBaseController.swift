@@ -25,11 +25,20 @@ class NavigationMenuBaseController: UITabBarController {
 
     // the width of our menuView
     private var menuWidth = 100.0
+    
+    
+    // a reference to our custom tab bar
+    var customTabBar: CustomTabBarView!
+   
+    // the leading constraint of our custom tab bar used for animating
+    private var tabBarLeadingConstraint: NSLayoutConstraint!
 
+    // our menu view that rests on the left hand side of this controller
     private var menuView: AccountMenuView!
    
+    // a bool that determines if the menu is open
      public var menuIsOpen: Bool {
-           return view.frame.minX > 0
+         return tabBarLeadingConstraint.constant > 0
        }
     
     override func viewDidLoad() {
@@ -50,14 +59,29 @@ class NavigationMenuBaseController: UITabBarController {
         let toDirection = menuIsOpen ? 0 : menuWidth
         
         // animate the view opening or closing
+        self.tabBarLeadingConstraint.constant = toDirection
+        self.tabBarLeadingConstraint.isActive = true
+        
+        // references our navigational vc / content view so we can animate it
+        let currentVC =  self.viewControllers?[self.selectedIndex]
+        
+        // animate our tab bar moving to show menu view
         UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseIn, animations: {
-         self.view.frame = CGRect(x:toDirection, y: self.view.frame.origin.y, width: self.view.frame.width, height: self.view.frame.height)
+            self.view.layoutIfNeeded()
         })
         
+        // animate our content view NOTE: I do not know why I have to animate these seperately
+            // suspecting it has to do with only one view animating at a time? not sure.
+        UIView.animate(withDuration: 0.2, delay: 0, options: .curveEaseIn, animations: {
+            currentVC?.view.frame = CGRect(x:toDirection, y: self.view.frame.origin.y, width: self.view.frame.width, height: self.view.frame.height)
+        })
+        
+        // tells our menu function what to do when opening and closing
         menuView.showMenuView(showMenu: menuIsOpen)
         
     }
    
+    
     // load the tab bar
     func loadTabBar() {
         // sets up our custom tab bar view amd adds our view controllers to our tab bar controller
@@ -119,20 +143,23 @@ class NavigationMenuBaseController: UITabBarController {
         tabBar.isHidden = true
         
         
-        let customTabBar = CustomTabBarView(menuItems: items)
-        customTabBar.translatesAutoresizingMaskIntoConstraints = false
+        customTabBar = CustomTabBarView(menuItems: items)
         
         // instead of creating a delegate, we set the function of out custom tab bar view to our function
         customTabBar.tabTapped = self.changeTab
         
         self.view.addSubview(customTabBar)
+        customTabBar.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            customTabBar.leadingAnchor.constraint(equalTo: tabBar.leadingAnchor),
-            customTabBar.trailingAnchor.constraint(equalTo: tabBar.trailingAnchor),
             customTabBar.widthAnchor.constraint(equalToConstant: tabBar.frame.width),
             customTabBar.heightAnchor.constraint(equalToConstant: tabBarHeight),
             customTabBar.bottomAnchor.constraint(equalTo: tabBar.bottomAnchor)
         ])
+        
+        tabBarLeadingConstraint = customTabBar.leadingAnchor.constraint(equalTo: tabBar.leadingAnchor)
+        tabBarLeadingConstraint.isActive = true
+    
+
     }
     
     func addMenuView(){
@@ -144,7 +171,7 @@ class NavigationMenuBaseController: UITabBarController {
             menuView.topAnchor.constraint(equalTo: view.topAnchor),
             menuView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             menuView.heightAnchor.constraint(equalTo: view.heightAnchor),
-            menuView.trailingAnchor.constraint(equalTo: view.leadingAnchor),
+            menuView.trailingAnchor.constraint(equalTo: customTabBar.leadingAnchor),
             menuView.widthAnchor.constraint(equalToConstant: menuWidth)
         ])
     }
@@ -166,7 +193,7 @@ class NavigationMenuBaseController: UITabBarController {
             case .home:
                 return HomeViewController()
             case .search:
-                return TestViewController()
+                return HomeViewController()
             case .spaces:
                 return HomeViewController()
             case .notifications:
