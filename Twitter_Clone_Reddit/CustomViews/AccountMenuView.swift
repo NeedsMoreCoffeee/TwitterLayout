@@ -19,10 +19,16 @@ class AccountMenuView: UIView {
         return tv
     }()
     
+    let cellID = "menuViewCellID"
     
+    let menuTitles = ["Profile", "Lists", "Topics", "Bookmarks", "Twitter Blue", "Moments", "Purchases", "Monotization"]
+   
     // a view that goes over our content view
-   private let contentShader = UIView()
-
+    private let contentShader = UIView()
+    
+    
+    private var topView: UIView!
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setUpViews()
@@ -60,14 +66,18 @@ class AccountMenuView: UIView {
 extension AccountMenuView:  UITableViewDelegate, UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 0
+        return menuTitles.count
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 70
     }
     
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "MenuCell", for: indexPath)
-        
-        
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellID, for: indexPath) as! MenuTableCell
+        cell.setLabels(title: menuTitles[indexPath.row])
+        cell.selectionStyle = .none
         return cell
     }
     
@@ -81,12 +91,15 @@ extension AccountMenuView{
     
     // calls all the methods in our layout extension to set up the views
     private func setUpViews(){
-        addTopView()
+        isUserInteractionEnabled = true
+        topView = addTopView()
         addContentShader()
         setUpDividerBars()
+        addTableView()
     }
     
     
+
    private func addContentShader(){
        guard let contentView = TabBarController.parentController?.view else {
            print("null")
@@ -109,9 +122,20 @@ extension AccountMenuView{
        contentShader.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.contentShaderTapped)))
     }
     
-        
-    private func addTopView(){
+    // adds the profile image, Name, handler and follower count
+    private func addTopView() -> UIView{
         backgroundColor = .black
+        
+        let topBounds = UIView()
+        topBounds.sizeToFit()
+        addSubview(topBounds)
+        topBounds.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            topBounds.topAnchor.constraint(equalTo: topAnchor),
+            topBounds.leadingAnchor.constraint(equalTo: leadingAnchor),
+            topBounds.trailingAnchor.constraint(equalTo: trailingAnchor)
+
+        ])
         
         let fontSizeBold = 20.0
         let headerFont = UIFont(name: "Helvetica-Bold", size: fontSizeBold)
@@ -133,11 +157,11 @@ extension AccountMenuView{
         profileButton.contentMode = .scaleToFill
         profileButton.sizeToFit()
         
-        addSubview(profileButton)
+        topBounds.addSubview(profileButton)
         profileButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            profileButton.topAnchor.constraint(equalTo: topAnchor, constant: 40),
-            profileButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 15),
+            profileButton.topAnchor.constraint(equalTo: topBounds.topAnchor, constant: 40),
+            profileButton.leadingAnchor.constraint(equalTo: topBounds.leadingAnchor, constant: 15),
             profileButton.heightAnchor.constraint(equalToConstant: profileButtonSize),
             profileButton.widthAnchor.constraint(equalToConstant: profileButtonSize)
 
@@ -149,7 +173,7 @@ extension AccountMenuView{
         nameLabel.textColor = ProjectThemes.lightGrayColorPT
         nameLabel.sizeToFit()
         nameLabel.font = headerFont
-        addSubview(nameLabel)
+        topBounds.addSubview(nameLabel)
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             nameLabel.topAnchor.constraint(equalTo: profileButton.bottomAnchor, constant: 10),
@@ -162,20 +186,22 @@ extension AccountMenuView{
         handlerLabel.textColor = ProjectThemes.darkGrayColorPT
         handlerLabel.sizeToFit()
         handlerLabel.font = textFont
-        addSubview(handlerLabel)
+        topBounds.addSubview(handlerLabel)
         handlerLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             handlerLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 0),
             handlerLabel.leadingAnchor.constraint(equalTo: profileButton.leadingAnchor),
         ])
         
+        
+        // underneath here we create 4 label views, but this could be simplified with attributed strings with 2 labels
         let followingNumLabel = UILabel()
         followingNumLabel.text = "1"
    
         followingNumLabel.textColor = ProjectThemes.lightGrayColorPT
         followingNumLabel.sizeToFit()
         followingNumLabel.font = textBoldFont
-        addSubview(followingNumLabel)
+        topBounds.addSubview(followingNumLabel)
         followingNumLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             followingNumLabel.topAnchor.constraint(equalTo: handlerLabel.bottomAnchor, constant: 15),
@@ -188,7 +214,7 @@ extension AccountMenuView{
         followingLabel.textColor = ProjectThemes.darkGrayColorPT
         followingLabel.sizeToFit()
         followingLabel.font = textFont
-        addSubview(followingLabel)
+        topBounds.addSubview(followingLabel)
         followingLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             followingLabel.bottomAnchor.constraint(equalTo: followingNumLabel.bottomAnchor, constant: 0),
@@ -201,7 +227,7 @@ extension AccountMenuView{
         followersNumLabel.textColor = ProjectThemes.lightGrayColorPT
         followersNumLabel.sizeToFit()
         followersNumLabel.font = textBoldFont
-        addSubview(followersNumLabel)
+        topBounds.addSubview(followersNumLabel)
         followersNumLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             followersNumLabel.bottomAnchor.constraint(equalTo: followingLabel.bottomAnchor),
@@ -214,17 +240,30 @@ extension AccountMenuView{
         followersLabel.textColor = ProjectThemes.darkGrayColorPT
         followersLabel.sizeToFit()
         followersLabel.font = textFont
-        addSubview(followersLabel)
+        topBounds.addSubview(followersLabel)
         followersLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            followersLabel.bottomAnchor.constraint(equalTo: followersNumLabel.bottomAnchor, constant: 0),
+            followersLabel.topAnchor.constraint(equalTo: followersNumLabel.topAnchor, constant: 0),
             followersLabel.leadingAnchor.constraint(equalTo: followersNumLabel.trailingAnchor, constant: 3),
+            followersLabel.bottomAnchor.constraint(equalTo: topBounds.bottomAnchor, constant: -10)
         ])
         
-        
+        return topBounds
     }
     
-    
+    func addTableView(){
+        tableView.backgroundColor = .clear
+        addSubview(tableView)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: topView.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -67.06)
+        ])
+        
+        tableView.register(MenuTableCell.self, forCellReuseIdentifier: cellID)
+    }
     
     // creates thin dividers. The better way to do this would be to override draw,using coregraphics
     // will change to draw with stroke() later
@@ -250,6 +289,73 @@ extension AccountMenuView{
             verticalDivider.trailingAnchor.constraint(equalTo: trailingAnchor),
             verticalDivider.widthAnchor.constraint(equalToConstant: 0.25)
         ])
+        
+        let verticalDividerTop = UIView()
+        verticalDividerTop.backgroundColor = ProjectThemes.darkGrayColorPT
+        addSubview(verticalDividerTop)
+        verticalDividerTop.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            verticalDividerTop.topAnchor.constraint(equalTo: topView.bottomAnchor),
+            verticalDividerTop.leadingAnchor.constraint(equalTo: leadingAnchor),
+            verticalDividerTop.trailingAnchor.constraint(equalTo: trailingAnchor),
+            verticalDividerTop.heightAnchor.constraint(equalToConstant: 0.25)
+        ])
+
     }
+    
+}
+
+
+
+// MARK: The Table View Cell Used In our Menu
+private class MenuTableCell: UITableViewCell{
+    let menuLabel = UILabel()
+    let menuIcon = UIImageView()
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        setUpView()
+    }
+    
+    public func setLabels(title: String){
+        menuLabel.text = title
+        
+    }
+    
+    private func setUpView(){
+        backgroundColor = .clear
+        menuIcon.image = UIImage(named: "home_icon")
+        menuIcon.tintColor = ProjectThemes.lightGrayColorPT
+        menuIcon.backgroundColor = .clear
+        addSubview(menuIcon)
+        menuIcon.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            menuIcon.centerYAnchor.constraint(equalTo: centerYAnchor),
+            menuIcon.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 15),
+            menuIcon.widthAnchor.constraint(equalToConstant: 27),
+            menuIcon.heightAnchor.constraint(equalToConstant: 27)
+        ])
+        
+        
+        let fontSize = 20.0
+        let textBoldFont = UIFont(name: "HelveticaNeue", size: fontSize)
+        
+        menuLabel.text = "Error"
+        menuLabel.textColor = ProjectThemes.lightGrayColorPT
+        menuLabel.font = textBoldFont
+        menuLabel.sizeToFit()
+        addSubview(menuLabel)
+        menuLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            menuLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            menuLabel.leadingAnchor.constraint(equalTo: menuIcon.trailingAnchor, constant: 15)
+        ])
+        
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     
 }

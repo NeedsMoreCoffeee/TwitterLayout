@@ -38,8 +38,6 @@
 		A1CA5BF92893F16C00BA2CE4 /* AccountMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountMenuView.swift; sourceTree = "<group>"; };
 		A1CA5C0128940FEA00BA2CE4 /* NavigationBaseController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationBaseController.swift; sourceTree = "<group>"; };
 		A1CA5C0228940FEA00BA2CE4 /* CustomTabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabBarView.swift; sourceTree = "<group>"; };
-		A1CA5C0628940FED00BA2CE4 /* CustomTabBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabBarView.swift; sourceTree = "<group>"; };
-		A1CA5C0728940FED00BA2CE4 /* NavigationBaseController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationBaseController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,11 +71,11 @@
 			isa = PBXGroup;
 			children = (
 				A17BA828288FFA0300D6E447 /* AppDelegates */,
+				A1CA5C0028940FEA00BA2CE4 /* CustomTabBar */,
 				A17BA829288FFA1100D6E447 /* ViewControllers */,
 				A17BA82A288FFA2000D6E447 /* CustomViews */,
 				A17BA825288FF7A500D6E447 /* Cells */,
 				A17BA8302890138800D6E447 /* Helpers */,
-				A1CA5C0528940FED00BA2CE4 /* CustomTabBar */,
 				A17BA81A288FF48000D6E447 /* Assets.xcassets */,
 				A17BA81C288FF48000D6E447 /* LaunchScreen.storyboard */,
 				A17BA81F288FF48000D6E447 /* Info.plist */,
@@ -124,7 +122,6 @@
 		A17BA8302890138800D6E447 /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
-				A1CA5C0028940FEA00BA2CE4 /* CustomTabBar */,
 				A17BA8312890139900D6E447 /* ProjectColors.swift */,
 			);
 			path = Helpers;
@@ -135,15 +132,6 @@
 			children = (
 				A1CA5C0228940FEA00BA2CE4 /* CustomTabBarView.swift */,
 				A1CA5C0128940FEA00BA2CE4 /* NavigationBaseController.swift */,
-			);
-			path = CustomTabBar;
-			sourceTree = "<group>";
-		};
-		A1CA5C0528940FED00BA2CE4 /* CustomTabBar */ = {
-			isa = PBXGroup;
-			children = (
-				A1CA5C0628940FED00BA2CE4 /* CustomTabBarView.swift */,
-				A1CA5C0728940FED00BA2CE4 /* NavigationBaseController.swift */,
 			);
 			path = CustomTabBar;
 			sourceTree = "<group>";
