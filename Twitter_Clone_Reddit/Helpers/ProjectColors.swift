@@ -2,7 +2,7 @@
 //  ProjectColors.swift
 //  Twitter_Clone_Reddit
 //
-//  Created by Brandon Bravos on 7/26/22.
+//  Created by NeedsMoreCoffeee on 7/26/22.
 //
 
 import Foundation
